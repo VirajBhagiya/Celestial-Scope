@@ -10,36 +10,44 @@ import time
 
 def get_celestial_coordinates(celestial_name):
     chrome_options = Options()
-    # chrome_options.add_argument("--headless")  # Uncomment for headless mode
+    # chrome_options.add_argument("--headless")  # Run in headless mode for faster execution
+    # chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    driver.get("https://stellarium-web.org/")
-    
-    # Wait until the search box is present
-    search_box = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "input-33"))
-    )
-    
-    # Search for the celestial body
-    search_box.clear()
-    search_box.send_keys(celestial_name)
-    time.sleep(3)
-    search_box.send_keys(Keys.TAB)
-    search_box.send_keys(Keys.ENTER)
-    search_box.send_keys(Keys.RETURN)
-    
-    
-    
-    ra_dec_div = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="stel"]/div/div/div[10]/div[3]/div[4]/div[2]'))
-    )
-    
-    ra_dec_values = ra_dec_div.find_elements(By.XPATH, '/html/body/div[2]/div/div[1]/main/div/div/div/div/div/div[10]/div[3]/div[4]/div[2]')
-    
-    print(ra_dec_values)
-    
-    driver.quit()
+    try:
+        driver.get("https://stellarium-web.org/")
 
+        # Wait for the search input to be visible
+        search_box = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="text"]'))
+        )
+
+        # Enter the celestial name in the search box
+        search_box.clear()
+        search_box.send_keys(celestial_name)
+        time.sleep(3)  # Allow suggestions to load
+        search_box.send_keys(Keys.ENTER)
+
+        # Wait for the coordinates section to load
+        coords_div = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "info-item"))
+        )
+
+        # Extract RA/Dec and Az/Alt values
+        ra_dec = driver.find_element(By.XPATH, "//div[contains(text(), 'RA/Dec')]/following-sibling::div").text
+        az_alt = driver.find_element(By.XPATH, "//div[contains(text(), 'Az/Alt')]/following-sibling::div").text
+
+        print(f"RA/Dec: {ra_dec}")
+        print(f"Az/Alt: {az_alt}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    finally:
+        driver.quit()
+
+# Example usage
 get_celestial_coordinates("Mars")
