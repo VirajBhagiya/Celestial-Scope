@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestial Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Celestial Tracker</h1>
+        <form id="searchForm">
+            <label for="celestialName">Enter Object Name:</label>
+            <input type="text" id="celestialName" placeholder="e.g., Mars, Vega" required>
+            <button type="submit">Get Coordinates</button>
+        </form>
+        <div id="coordinates" class="output">
+            <h2>Coordinates</h2>
+            <p><strong>RA:</strong> <span id="ra">--</span></p>
+            <p><strong>Dec:</strong> <span id="dec">--</span></p>
+            <p><strong>Azimuth:</strong> <span id="azimuth">--</span></p>
+            <p><strong>Altitude:</strong> <span id="altitude">--</span></p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
