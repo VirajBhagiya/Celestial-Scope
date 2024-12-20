@@ -1,53 +1,50 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+from turtle import distance
+from skyfield.api import N, S, E, W, wgs84, load
 
-def get_celestial_coordinates(celestial_name):
-    chrome_options = Options()
-    # chrome_options.add_argument("--headless")  # Run in headless mode for faster execution
-    # chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
+ts = load.timescale()
+planets = load('de421.bsp')
 
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-
+def get_planet_coordinates(planet_name, latitude, longitude):
     try:
-        driver.get("https://stellarium-web.org/")
+        # Get the planet object dynamically
+        planet = planets[planet_name]
+        
+        # Get current time
+        t = ts.now()
+        
+        # RA and Dec from Earth's perspective
+        earth = planets['earth']
+        astrometric = earth.at(t).observe(planet)
+        apparent = astrometric.apparent()
+        ra, dec, distance = apparent.radec('date')
+        
+        # Altitude and Azimuth from a specific location
+        observer = earth + wgs84.latlon(latitude * N, longitude * E)
+        astro = observer.at(t).observe(planet)
+        app = astro.apparent()
+        alt, az, distance = app.altaz()
+        
+        return {
+            "RA": ra,
+            "Dec": dec,
+            "Altitude": alt,
+            "Azimuth": az,
+        }
+    
+    except KeyError:
+        return {"error": f"Planet '{planet_name}' not found in the ephemeris."}
 
-        # Wait for the search input to be visible
-        search_box = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'input[type="text"]'))
-        )
+latitude = 23.2156
+longitude = 72.6369  
+planet_name = 'moon'
 
-        # Enter the celestial name in the search box
-        search_box.clear()
-        search_box.send_keys(celestial_name)
-        time.sleep(3)  # Allow suggestions to load
-        search_box.send_keys(Keys.ENTER)
+coordinates = get_planet_coordinates(planet_name, latitude, longitude)
 
-        # Wait for the coordinates section to load
-        coords_div = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "info-item"))
-        )
-
-        # Extract RA/Dec and Az/Alt values
-        ra_dec = driver.find_element(By.XPATH, "//div[contains(text(), 'RA/Dec')]/following-sibling::div").text
-        az_alt = driver.find_element(By.XPATH, "//div[contains(text(), 'Az/Alt')]/following-sibling::div").text
-
-        print(f"RA/Dec: {ra_dec}")
-        print(f"Az/Alt: {az_alt}")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    finally:
-        driver.quit()
-
-# Example usage
-get_celestial_coordinates("Mars")
+if "error" in coordinates:
+    print(coordinates["error"])
+else:
+    print(f"Coordinates for {planet_name.capitalize()}:")
+    print(f"RA: {coordinates['RA']}")
+    print(f"Dec: {coordinates['Dec']}")
+    print(f"Altitude: {coordinates['Altitude']}")
+    print(f"Azimuth: {coordinates['Azimuth']}")
