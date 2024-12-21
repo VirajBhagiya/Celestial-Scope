@@ -12,8 +12,16 @@
         <form id="searchForm">
             <label for="celestialName">Enter Object Name:</label>
             <input type="text" id="celestialName" placeholder="e.g., Mars, Vega" required>
+
+            <label for="latitude">Latitude (in degrees):</label>
+            <input type="number" id="latitude" placeholder="e.g., 23.2156" required>
+
+            <label for="longitude">Longitude (in degrees):</label>
+            <input type="number" id="longitude" placeholder="e.g., 72.6369" required>
+
             <button type="submit">Get Coordinates</button>
         </form>
+
         <div id="coordinates" class="output">
             <h2>Coordinates</h2>
             <p><strong>RA:</strong> <span id="ra">--</span></p>
@@ -22,6 +30,7 @@
             <p><strong>Altitude:</strong> <span id="altitude">--</span></p>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

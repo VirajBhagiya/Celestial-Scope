@@ -1,4 +1,3 @@
-from turtle import distance
 from skyfield.api import N, S, E, W, wgs84, load
 
 ts = load.timescale()
@@ -6,23 +5,19 @@ planets = load('de421.bsp')
 
 def get_planet_coordinates(planet_name, latitude, longitude):
     try:
-        # Get the planet object dynamically
         planet = planets[planet_name]
-        
-        # Get current time
         t = ts.now()
         
         # RA and Dec from Earth's perspective
         earth = planets['earth']
         astrometric = earth.at(t).observe(planet)
         apparent = astrometric.apparent()
-        ra, dec, distance = apparent.radec('date')
+        ra, dec, _ = apparent.radec('date')
         
-        # Altitude and Azimuth from a specific location
         observer = earth + wgs84.latlon(latitude * N, longitude * E)
         astro = observer.at(t).observe(planet)
         app = astro.apparent()
-        alt, az, distance = app.altaz()
+        alt, az, _ = app.altaz()
         
         return {
             "RA": ra,
@@ -34,8 +29,9 @@ def get_planet_coordinates(planet_name, latitude, longitude):
     except KeyError:
         return {"error": f"Planet '{planet_name}' not found in the ephemeris."}
 
-latitude = 23.2156
-longitude = 72.6369  
+
+latitude = 23.150027
+longitude = 72.638222
 planet_name = 'moon'
 
 coordinates = get_planet_coordinates(planet_name, latitude, longitude)

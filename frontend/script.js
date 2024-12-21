@@ -2,6 +2,8 @@ document.getElementById('searchForm').addEventListener('submit', async (event) =
     event.preventDefault();
 
     const celestialName = document.getElementById('celestialName').value;
+    const latitude = parseFloat(document.getElementById('latitude').value);
+    const longitude = parseFloat(document.getElementById('longitude').value);
     const coordinatesOutput = document.getElementById('coordinates');
     
     // Show loading message without overwriting the entire content
@@ -17,7 +19,11 @@ document.getElementById('searchForm').addEventListener('submit', async (event) =
         const response = await fetch('http://127.0.0.1:8000/get-coordinates/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: celestialName }),
+            body: JSON.stringify({
+                name: celestialName,
+                latitude: latitude,
+                longitude: longitude
+            }),
         });
         
         const data = await response.json();

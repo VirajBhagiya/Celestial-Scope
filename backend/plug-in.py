@@ -63,5 +63,4 @@ def get_celestial_coordinates(celestial_name):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
-# Example usage
 get_celestial_coordinates("Mars")
