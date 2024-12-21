@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
-from .database import get_db
+from .database import get_db, create_tables
 from .models import User
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from skyfield.api import load, wgs84
-from auth import hash_password, verify_password, create_access_token, get_current_user
+from .auth import hash_password, verify_password, create_access_token, get_current_user
 
 app = FastAPI()
 
@@ -22,17 +22,27 @@ class UserRegister(BaseModel):
     email: str
     password: str
     
+class TokenRequest(BaseModel):
+    username: str
+    password: str
+    
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    
 class CelestialRequest(BaseModel):
     name: str
-    latitude: float
-    longitude: float
+    latitude: float = Field(..., ge=-90, le=90, description="Latitude must be between -90 and 90")
+    longitude: float = Field(..., ge=-180, le=180, description="Longitude must be between -180 and 180")
 
 ts = load.timescale()
 ephemeris = load("de421.bsp")
 earth = ephemeris['earth']
+
+@app.on_event("startup")
+async def startup_event():
+    # Initialize tables on startup
+    create_tables()
 
 @app.get("/")
 async def health_check():
@@ -83,16 +93,15 @@ async def register_user(user: UserRegister, db: Session = Depends(get_db)):
     return {"msg": "User registered successfully"}
 
 @app.post("/token/", response_model=TokenResponse)
-async def login_for_access_token(username: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username).first()
-    if not user or not verify_password(password, user.hashed_password):
+async def login_for_access_token(request: TokenRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == request.username).first()
+    if not user or not verify_password(request.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     # Create access token
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Protected route that requires authentication
 @app.get("/protected/")
 async def protected_route(current_user: dict = Depends(get_current_user)):
     return {"msg": "This is a protected route", "user": current_user}
