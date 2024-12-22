@@ -9,7 +9,6 @@ from .database import get_db
 from .models import User
 from .config import settings
 
-# Secret key for JWT
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
@@ -23,19 +22,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     payload = decode_access_token(token)
-    print(payload)
     if payload is None:
-        print("payload none error")
         raise credentials_exception
     
     username = payload.get("sub")
     if username is None:
-        print("username none error")
         raise credentials_exception
     
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        print("user none error 3")
         raise credentials_exception
     
     return {"username": username, "email": user.email}
@@ -58,24 +53,19 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes
 # Function to decode JWT token
 def decode_access_token(token: str) -> Union[dict, None]:
     try:
-        print(token)
-        payload = jwt.decode(token, SECRET_KEY, algorithm=ALGORITHM)
-        print(payload)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp = payload.get("exp")
-        print(exp)
         if exp is None:
-            print("exp none error")
             return None
         if datetime.now(timezone.utc) > datetime.fromtimestamp(exp, tz=timezone.utc):
-            print("date extra error")
             return None
         return payload
     
     except jwt.ExpiredSignatureError:
-        print("Token expired error")
+        print("Token Expired!!")
         return None
     except jwt.DecodeError:
-        print("Token decode error")
+        print("Token Decode!!")
         return None
     except jwt.PyJWTError as e:
         print(f"Unexpected JWT error: {e}")
