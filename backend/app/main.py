@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
-from .database import get_db, create_tables
-from .models import User
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
+from .database import get_db, create_tables
 from skyfield.api import load, wgs84
 from .auth import hash_password, verify_password, create_access_token, get_current_user
+from .models import User
 
 app = FastAPI()
 
@@ -41,7 +41,6 @@ earth = ephemeris['earth']
 
 @app.on_event("startup")
 async def startup_event():
-    # Initialize tables on startup
     create_tables()
 
 @app.get("/")
@@ -49,7 +48,7 @@ async def health_check():
     return {"status": "ok", "message": "Celestial Tracker API is running"}
 
 @app.post("/get-coordinates/")
-async def get_coordinates(request: CelestialRequest):
+async def get_coordinates(request: CelestialRequest, current_user: dict = Depends(get_current_user)):
     celestial_name = request.name.lower()
     latitude = request.latitude
     longitude = request.longitude
@@ -124,6 +123,6 @@ def format_degrees(decimal_degrees):
         degrees = int(decimal_degrees)
         arcminutes = int((decimal_degrees - degrees) * 60)
         arcseconds = ((decimal_degrees - degrees) * 60 - arcminutes) * 60
-        return f"{sign}{degrees}° {arcminutes}' {arcseconds:.2f}\""
+        return f"{sign}{degrees}° {arcminutes}' {arcseconds:.2f}"
     except Exception as e:
         return "Invalid Degrees"
