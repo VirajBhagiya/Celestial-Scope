@@ -48,7 +48,7 @@ async def health_check():
     return {"status": "ok", "message": "Celestial Tracker API is running"}
 
 @app.post("/get-coordinates/")
-async def get_coordinates(request: CelestialRequest, current_user: dict = Depends(get_current_user)):
+async def get_coordinates(request: CelestialRequest):
     celestial_name = request.name.lower()
     latitude = request.latitude
     longitude = request.longitude
@@ -62,8 +62,8 @@ async def get_coordinates(request: CelestialRequest, current_user: dict = Depend
         t = ts.now()
         astrometric = observer.at(t).observe(celestial_body)
         apparent = astrometric.apparent()
-        ra, dec, _ = apparent.radec()
-        alt, az, _ = apparent.altaz()
+        ra, dec, distance = apparent.radec()
+        alt, az, distance = apparent.altaz()
 
         return {
             "name": celestial_name,
@@ -114,7 +114,7 @@ def format_ra(decimal_hours):
         seconds = ((decimal_hours - hours) * 60 - minutes) * 60
         return f"{hours:02d}h {minutes:02d}m {seconds:.2f}s"
     except Exception as e:
-        return "Invalid RA"
+        return f"Invalid RA\nError:{e}"
 
 def format_degrees(decimal_degrees):
     try:
@@ -123,6 +123,6 @@ def format_degrees(decimal_degrees):
         degrees = int(decimal_degrees)
         arcminutes = int((decimal_degrees - degrees) * 60)
         arcseconds = ((decimal_degrees - degrees) * 60 - arcminutes) * 60
-        return f"{sign}{degrees}° {arcminutes}' {arcseconds:.2f}"
+        return f"{sign}{degrees}° {arcminutes}' {arcseconds:.2f}\" "
     except Exception as e:
-        return "Invalid Degrees"
+        return f"Invalid Degrees\nError:{e}"
