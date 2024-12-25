@@ -37,28 +37,28 @@ def get_celestial_coordinates(celestial_name):
         data = response.json()
 
         # Extract raw values
-        ra_decimal = data.get('ra')
-        dec_decimal = data.get('dec')
-        az_decimal = data.get('azimuth')
-        alt_decimal = data.get('altitude')
+        ra_decimal = data.get('ra') # Right Ascension
+        dec_decimal = data.get('dec') # Declination
+        azimuth_decimal = data.get('azimuth')
+        altitude_decimal = data.get('altitude')
 
         # Debugging raw values
         print(f"Raw RA: {ra_decimal}")
         print(f"Raw Dec: {dec_decimal}")
-        print(f"Raw Azimuth: {az_decimal}")
-        print(f"Raw Altitude: {alt_decimal}")
+        print(f"Raw Azimuth: {azimuth_decimal}")
+        print(f"Raw Altitude: {altitude_decimal}")
 
         # Convert to desired formats
         ra_formatted = format_ra(ra_decimal)
         dec_formatted = format_degrees(dec_decimal)
-        az_formatted = format_degrees(az_decimal)
-        alt_formatted = format_degrees(alt_decimal)
+        azimuth_formatted = format_degrees(azimuth_decimal)
+        altitude_formatted = format_degrees(altitude_decimal)
 
         # Display the results
         print(f"Formatted RA: {ra_formatted}")
         print(f"Formatted Dec: {dec_formatted}")
-        print(f"Formatted Azimuth: {az_formatted}")
-        print(f"Formatted Altitude: {alt_formatted}")
+        print(f"Formatted Azimuth: {azimuth_formatted}")
+        print(f"Formatted Altitude: {altitude_formatted}")
 
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")

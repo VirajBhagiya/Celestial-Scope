@@ -45,7 +45,7 @@ async def startup_event():
 
 @app.get("/")
 async def health_check():
-    return {"status": "ok", "message": "Celestial Tracker API is running"}
+    return {"status": "ok", "message": "Celestial Scope is running"}
 
 @app.post("/get-coordinates/")
 async def get_coordinates(request: CelestialRequest):
@@ -62,16 +62,16 @@ async def get_coordinates(request: CelestialRequest):
         t = ts.now()
         astrometric = observer.at(t).observe(celestial_body)
         apparent = astrometric.apparent()
-        ra, dec, distance = apparent.radec()
-        alt, az, distance = apparent.altaz()
+        ra, dec, distance = apparent.radec() # {RA->(Right Ascension), Dec->(Declination)}
+        altitude, azimuth, distance = apparent.altaz()
 
         return {
             "name": celestial_name,
             "coordinates": {
                 "RA": format_ra(ra.hours),
                 "Dec": format_degrees(dec.degrees),
-                "Azimuth": format_degrees(az.degrees),
-                "Altitude": format_degrees(alt.degrees),
+                "Azimuth": format_degrees(azimuth.degrees),
+                "Altitude": format_degrees(altitude.degrees),
             },
         }
     except Exception as e:
@@ -89,13 +89,13 @@ async def register_user(user: UserRegister, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"msg": "User registered successfully"}
+    return {"msg": "User registered successfully!"}
 
 @app.post("/token/", response_model=TokenResponse)
 async def login_for_access_token(request: TokenRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == request.username).first()
     if not user or not verify_password(request.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password!")
     
     # Create access token
     access_token = create_access_token(data={"sub": user.username})
@@ -103,8 +103,7 @@ async def login_for_access_token(request: TokenRequest, db: Session = Depends(ge
 
 @app.get("/protected/")
 async def protected_route(current_user: dict = Depends(get_current_user)):
-    return {"msg": "This is a protected route", "user": current_user}
-
+    return {"msg": "This is a protected route!", "user": current_user}
 
 # Helper functions to format coordinates
 def format_ra(decimal_hours):

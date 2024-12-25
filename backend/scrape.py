@@ -1,4 +1,4 @@
-from skyfield.api import N, S, E, W, wgs84, load
+from skyfield.api import N, E, wgs84, load
 
 ts = load.timescale()
 planets = load('de421.bsp')
@@ -12,18 +12,18 @@ def get_planet_coordinates(planet_name, latitude, longitude):
         earth = planets['earth']
         astrometric = earth.at(t).observe(planet)
         apparent = astrometric.apparent()
-        ra, dec, _ = apparent.radec('date')
+        ra, dec, distance = apparent.radec('date') # Right Ascension, Declination
         
         observer = earth + wgs84.latlon(latitude * N, longitude * E)
         astro = observer.at(t).observe(planet)
         app = astro.apparent()
-        alt, az, _ = app.altaz()
+        altitude, azimuth, distance = app.altaz()
         
         return {
             "RA": ra,
             "Dec": dec,
-            "Altitude": alt,
-            "Azimuth": az,
+            "Altitude": altitude,
+            "Azimuth": azimuth,
         }
     
     except KeyError:
